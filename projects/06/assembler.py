@@ -1,100 +1,73 @@
+import sys 
 from asm_parser import *
 
 class Assembler:
-    parser = 0
-    output_file = 0
-
+    __parser = 0
+    __output_file = 0
+    __binary_source = {
+        '0'  : '101010',
+        '1'  : '111111',
+        '-1' : '111010', 
+        'D'  : '001100',
+        'A'  : '110000', 
+        'M'  : '110000',
+        '!D' : '001101',
+        '!A' : '110001',
+        '!M' : '110001',
+        '-D' : '001111',
+        '-A' : '110011',
+        '-M' : '110011',
+        'D+1': '011111',
+        'A+1': '110111', 
+        'M+1': '110111',
+        'D-1': '001110',
+        'A-1': '110010', 
+        'M-1': '110010',
+        'D+A': '000010', 
+        'D+M': '000010',
+        'D-A': '010011',
+        'D-M': '010011',
+        'A-D': '000111',
+        'M-D': '000111',
+        'D&A': '000111', 
+        'D&M': '000000',
+        'D|A': '000111',
+        'D|M': '010101'
+    }
+    __binary_jump = {
+        ''    : '000',
+        'JGT' : '001',
+        'JEQ' : '010',
+        'JGE' : '011',
+        'JLT' : '100',
+        'JNE' : '101',
+        'JLE' : '110',
+        'JMP' : '111'
+    }
+    __binary_target = {
+        ''   : '000',
+        'M'  : '001',
+        'D'  : '010',
+        'MD' : '011',
+        'A'  : '100',
+        'AM' : '101',
+        'AD' : '110',
+        'AMD': '111'
+    }
     def __init__(self, file_name):
         self.parser = Parser(file_name)
         self.output_file = open(file_name.partition('.')[0] + '.hack', 'w+')
 
     
-    def _to_binary(self, n):
+    def __to_binary(self, n):
         n_bin = bin(n)[2:]
         return '0' * (15 - len(n_bin)) + n_bin
-
-
-    def _get_binary_source(self, source):
-        if source == '0':
-            return '101010'
-        elif source == '1':
-            return '111111'
-        elif source == '-1':
-            return '111010'
-        elif source == 'D':
-            return '001100'
-        elif source in ['A', 'M']:
-            return '110000'
-        elif source == '!D':
-            return '001101'
-        elif source in ['!A', '!M']:
-            return '110001'
-        elif source == '-D':
-            return '001111'
-        elif source in ['-A', '-M']:
-            return '110011'
-        elif source == 'D+1':
-            return '011111'
-        elif source in ['A+1', 'M+1']:
-            return '110111'
-        elif source == 'D-1':
-            return '001110'
-        elif source in ['A-1', 'M-1']:
-            return '110010'
-        elif source in ['D+A', 'D+M']:
-            return '000010'
-        elif source in ['D-A', 'D-M']:
-            return '010011'
-        elif source in ['A-D', 'M-D']:
-            return '000111'
-        elif source in ['D&A', 'D&M']:
-            return '000000'
-        elif source in ['D|A', 'D|M']:
-            return '010101'
-
-
-    def _get_binary_target(self, target):
-        if target == '':
-            return '000'
-        elif target == 'M':
-            return '001'
-        elif target == 'D':
-            return '010'
-        elif target == 'MD':
-            return '011'
-        elif target == 'A':
-            return '100'
-        elif target == 'AM':
-            return '101'
-        elif target == 'AD':
-            return '110'
-        elif target == 'AMD':
-            return '111'
-
-
-    def _get_binary_jump(self, jump):
-        if jump == '':
-            return '000'
-        elif jump == 'JGT':
-            return '001'
-        elif jump == 'JEQ':
-            return '010'
-        elif jump == 'JGE':
-            return '011'
-        elif jump == 'JLT':
-            return '100'
-        elif jump == 'JNE':
-            return '101'
-        elif jump == 'JLE':
-            return '110'
-        elif jump == 'JMP':
-            return '111'
 
     def assemble(self):
         while self.parser.lines_are_left():
             operation = self.parser.get_next_operation()
             if operation.type is OperationType.A:
-                binary_code = '0' + self._to_binary(int(operation.label))
+                binary_code = '0' + self.__to_binary(int(operation.label))
             else:
                 binary_code = '111'
                 source = operation.source
@@ -102,12 +75,12 @@ class Assembler:
                     a = '1'
                 else: 
                     a = '0'
-                binary_source = self._get_binary_source(operation.source)
-                binary_target = self._get_binary_target(operation.target)
-                binary_jump = self._get_binary_jump(operation.jump)
+                binary_source = self.__binary_source[operation.source]
+                binary_target = self.__binary_target[operation.target]
+                binary_jump = self.__binary_jump[operation.jump]
                 binary_code = '111' + a + binary_source + binary_target + binary_jump   
-            self.output_file.write(binary_code + '\n')     
+            self.output_file.write(binary_code + '\n')       
 
 
-a = Assembler("PongL.asm")
+a = Assembler(str(sys.argv[1]))
 a.assemble()
